@@ -1,25 +1,27 @@
 import {
     Prop,
     Schema,
-    SchemaFactory
+    SchemaFactory,
 } from '@nestjs/mongoose';
+
 import { Document } from 'mongoose';
 
-export type RoleDocument = Role & Document;
+export type RolesDocument = Roles & Document;
 
 @Schema({
     timestamps: true,
 })
-export class Role {
+export class Roles {
     @Prop({
         required: true,
         unique: true,
     })
     nombre!: string;
+
     @Prop({
-        default: true,
+        default:true,
     })
     activo!: boolean;
 }
 
-export const RoleSchema = SchemaFactory.createForClass(Role);
+export const RolesSchema = SchemaFactory.createForClass(Roles);

@@ -1,18 +1,12 @@
-import {
-    IsNotEmpty,
-    IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-import {
-    ApiProperty,
-} from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateRoleDto {
-    @ApiProperty({
-        example: 'Administrador',
-    })
-
-    @IsString()
-    @IsNotEmpty()
-    nombre!: string;
+export class CreateRolesDto {
+  @ApiProperty({
+    example: 'admin',
+  })
+  @IsString()
+  @IsNotEmpty()
+  nombre!: string;
 }

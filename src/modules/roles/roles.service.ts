@@ -1,152 +1,119 @@
-import { Get, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose'
-import { Role, RoleDocument } from './schemas/roles.schema';
+import { Model } from 'mongoose';
+import { Roles, RolesDocument } from './schemas/roles.schema';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-
+import { CreateRolesDto } from './dto/create-role.dto';
+import { UpdateRolesDto } from './dto/update-role.dto';
 
 @Injectable()
 export class RolesService {
-    constructor( 
-        @InjectModel(Role.name) 
-        private roleModel: 
-        Model<RoleDocument>,
-    ) {}
+  constructor(
+    @InjectModel(Roles.name)
+    private rolesModel: Model<RolesDocument>,
+  ) {}
 
-    /** 
-     * Metodo para crear un nuevo rol
-     */
+  /**
+   * Método para crear un nuevo rol
+   */
+  async create(dto: CreateRolesDto) {
+    const roles = await this.rolesModel.create(dto);
+    return ResponseHelper.succes(roles, 201);
+  }
 
-    async create(
-        dto:   CreateRoleDto,
-    ){
-        const role=
-        await this.roleModel.create(dto);
+  /**
+   * Metodo para consultar roles activos
+   */
+  async findAll() {
+    const roles = await this.rolesModel.find({ activo: true });
+    return ResponseHelper.succes(roles);
+  }
 
-        return ResponseHelper.succes(
-            role,
-            201,
-        );
+  /**
+   * Metodo para consultar roles inactivos
+   */
+  async findInactive() {
+    const roles = await this.rolesModel.find({ activo: false });
+    return ResponseHelper.succes(roles);
+  }
+
+  /**
+   * Buscar un rol por id
+   */
+  async findOne(id: string) {
+    const roles = await this.rolesModel.findById(id);
+
+    if (!roles) {
+      throw new NotFoundException('No se encontro el rol');
     }
 
-    /** 
-     * Metodo para obtener todos los roles
-     */
+    return ResponseHelper.succes(roles);
+  }
 
-    async findAll(){
-        const roles=
-        await this.roleModel.find({ active: true });
+  /**
+   * Actualizar un rol
+   */
+  async update(id: string, dto: UpdateRolesDto) {
+    const updatedRoles = await this.rolesModel.findByIdAndUpdate(id, dto, {
+      new: true,
+    });
 
-        return ResponseHelper.succes(
-            roles,
-        );
-    } 
-    
-   
-        /** 
-     * Consulta para obtener roles eliminados
-     */
-
-    async findInactive(){
-        const roles=
-        await this.roleModel.find({ active: false });
-
-        return ResponseHelper.succes(
-            roles,
-        );
+    if (!updatedRoles) {
+      throw new NotFoundException('No se encontro el rol');
     }
 
-    
+    return ResponseHelper.succes(updatedRoles);
+  }
 
+  /**
+   * ACTUALIZAR UN ROL PARCIALMENTE
+   */
+  async updatePartial(id: string, dto: UpdateRolesDto) {
+    const updatedRoles = await this.rolesModel.findByIdAndUpdate(
+      id,
+      { $set: dto },
+      { new: true },
+    );
 
-
-    /** 
-     * Metodo para obtener un rol por su id
-     */
-
-    async findOne(
-        id: string,
-    ){
-        const role= await this.roleModel.findById(id);
-
-        if (!role) {
-            throw new NotFoundException('Role not found');
-        }
-        return ResponseHelper.succes(role,);    
+    if (!updatedRoles) {
+      throw new NotFoundException('No se encontro el rol');
     }
 
+    return ResponseHelper.succes(updatedRoles);
+  }
 
-     /** 
-     * Consultar roles inactivos
-     */
+  /**
+   * eliminacion logica
+   */
+  async remove(id: string) {
+    const roles = await this.rolesModel.findByIdAndUpdate(
+      id,
+      { activo: false },
+      { new: true },
+    );
 
-
-
-    /** 
-     * Metodo para actualizar un rol por su id
-     */
-
-    async update(
-        id: string,
-        dto: UpdateRoleDto,
-    ){
-        const role= await this.roleModel.findById(id);
-
-        if (!role) {
-            throw new NotFoundException('Role not found');
-        }
-
-        const updatedRole= await this.roleModel.findByIdAndUpdate(id, dto, { new: true });
-
-        return ResponseHelper.succes(updatedRole,);
-
+    if (!roles) {
+      throw new NotFoundException('No se encontro el rol');
     }
 
-        /** 
-         * Metodo para actualizar un rol por su id
-         */
+    return ResponseHelper.succes(roles);
+  }
 
-        async partialUpdate(id:string, dto:UpdateRoleDto){
-            const role = await this.roleModel.findById(id);
+  /**
+   * Restaurar un rol eliminado lógicamente
+   */
+  async restore(id: string) {
+    // 💡 Cambiado a 'restore' para coincidir exactamente con tu controlador y optimizado en un paso
+    const restoredRole = await this.rolesModel.findByIdAndUpdate(
+      id,
+      { activo: true },
+      { new: true },
+    );
 
-            if (!role) {
-                throw new NotFoundException('Rol no encontrado');
-            }
+    if (!restoredRole) {
+      throw new NotFoundException('No se encontro el rol');
+    }
 
-            const updatedRole = await this.roleModel.findByIdAndUpdate(id, {$set: dto}, { new: true });
-            return ResponseHelper.succes(updatedRole,);
-        }
-
-        /** 
-         * Metodo para eliminar un rol por su id
-         */
-
-        async remove(id: string) {
-            const role = await this.roleModel.findById(id);
-
-            if (!role) {
-                throw new NotFoundException('Role no encontrado');
-            }
-            
-            const deletedRole = await this.roleModel.findByIdAndUpdate(id, { active: false }, { new: true });
-            return ResponseHelper.succes(deletedRole,);
-        }
-
-        /** 
-         * Restablecer un rol eliminado
-         */
-
-        async restore(id: string) {
-            const role = await this.roleModel.findById(id);
-
-            if (!role) {
-                throw new NotFoundException('Role no encontrado');
-            }
-
-            const restoredRole = await this.roleModel.findByIdAndUpdate(id, { active: true }, { new: true });
-            return ResponseHelper.succes(restoredRole,);
-        }
-
+    return ResponseHelper.succes(restoredRole);
+  }
 }

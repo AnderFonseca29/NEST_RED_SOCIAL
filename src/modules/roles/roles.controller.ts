@@ -1,97 +1,83 @@
-import { Controller, Post, Body, Get, Param, Put, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateRolesDto } from './dto/create-role.dto';
+import { UpdateRolesDto } from './dto/update-role.dto';
 
 @Controller('roles')
 export class RolesController {
-    constructor(
-        private readonly service:
-        RolesService,
-    ) {}
+  constructor(private readonly service: RolesService) {}
 
-    /**
-     * Metodo para crear un nuevo rol
-     */
-    @Post()
-    async create(
-        @Body() 
-        dto: CreateRoleDto,
-    ){
-        return this.service.create(
-            dto
-        );
-    }
+  /**
+   * Metodo para crear un nuevo rol
+   */
+  @Post()
+  async create(@Body() dto: CreateRolesDto) {
+    return await this.service.create(dto);
+  }
 
-    /** 
-     * Metodo para obtener todos los roles
-     */
+  /**
+   * Metodo para obtener todos los roles activos
+   */
+  @Get()
+  async findAll() {
+    return await this.service.findAll();
+  }
 
-    @Get()
-    findAll(){
-        return this.service.findAll();
-    }
+  /**
+   * Metodo para obtener todos los roles inactivos (borrados lógicamente)
+   */
+  @Get('inactivo')
+  async findInactive() {
+    return await this.service.findInactive();
+  }
 
-    /** 
-     * Metodo para obtener un rol por su id
-     */
+  /**
+   * Metodo para obtener un rol por su id
+   */
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.service.findOne(id);
+  }
 
-    @Get(':id')
-    findOne(
-        @Param('id') id: string,
-    ){
-        return this.service.findOne(id);
-    }
+  /**
+   * Metodo para actualizar un rol por su id (Reemplazo total)
+   */
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateRolesDto) {
+    return await this.service.update(id, dto);
+  }
 
+  /**
+   * Metodo para actualizar parcialmente un rol por su id
+   */
+  @Patch(':id')
+  async partialUpdate(@Param('id') id: string, @Body() dto: UpdateRolesDto) {
+    return await this.service.updatePartial(id, dto);
+  }
 
-    /** 
-     * Metodo para obtener roles inactivos
-     */
-    @Get('inactivos')
-    findInactive(){
-        return this.service.findInactive();
-    }
+  /**
+   * Restaurar rol eliminado lógicamente
+   */
+  @Patch(':id/restore')
+  async restore(@Param('id') id: string) {
+    // 💡 Sincronizado con el método restore de tu servicio usando await
+    return await this.service.restore(id);
+  }
 
-
-    /** 
-     * Metodo para actualizar un rol por su id
-     */
-    @Put(':id')
-    update(
-        @Param('id') id: string,
-        @Body() dto: UpdateRoleDto,
-    ){
-        return this.service.update(id, dto);
-    }
-
-    /** 
-     * Metodo para actualizar parcialmente un rol por su id
-     */
-    @Patch(':id')
-    partialUpdate(
-        @Param('id') id:string,
-        @Body() dto: UpdateRoleDto,
-    ){
-        return this.service.partialUpdate(id, dto);
-    }
-
-    /** 
-     * Metodo para restablecer un rol eliminado
-     */
-    @Patch('restaurar/:id')
-    restore(
-        @Param('id') id: string,
-    ){
-        return this.service.restore(id);
-    }
-
-    /** 
-     * Metodo para eliminar un rol por su id
-     */
-    @Delete(':id')
-    remove(
-        @Param('id') id: string,
-    ){
-        return this.service.remove(id);
-    }
+  /**
+   * Metodo para eliminar (lógicamente) un rol por su id
+   */
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return await this.service.remove(id);
+  }
 }
