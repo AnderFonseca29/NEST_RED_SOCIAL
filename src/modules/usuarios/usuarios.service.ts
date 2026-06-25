@@ -6,7 +6,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SearchUserDto } from './dto/search-user.dto';
-import { find } from 'rxjs';
 import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
@@ -50,59 +49,75 @@ export class UsuariosService {
     const limit= Number(search.limit) || 10;
 
     // 3. Consulta
-
     const data = await this.userModel.find(filter).populate('rol_id').skip((page - 1) * limit).limit(limit);
+    
     // 4. Contador de documentos= contador de usuarios
     const total = await this.userModel.countDocuments(filter);
 
     return ResponseHelper.succes({ total, page, limit, data });
-
-    /**
-     * consulta por id de usuario
-     */
   }
-    async findOne(id: string ) {
 
-      const user = await this.userModel.findById(id);
-      if (!user) {
-        throw new BadRequestException('Usuario no encontrado');
-      }
-      return ResponseHelper.succes(user);
+  // ✨ NUEVO MÉTODO: Obtener usuarios inactivos
+  async findInactives() {
+    // 1. Filtro estricto para traer solo los que tengan activo en false
+    const filter: any = { activo: false };
+
+    // Mantenemos la paginación básica por si tienes muchos usuarios inactivos
+    const page = 1;
+    const limit = 50; // Un límite holgado por defecto
+
+    // 2. Ejecutar consulta trayendo también su rol correspondiente
+    const data = await this.userModel
+      .find(filter)
+      .populate('rol_id')
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await this.userModel.countDocuments(filter);
+
+    // Retorna con tu estructura estandarizada
+    return ResponseHelper.succes({ total, page, limit, data });
+  }
+
+  /**
+   * consulta por id de usuario
+   */
+  async findOne(id: string ) {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    return ResponseHelper.succes(user);
+  }
+
+  /**
+   * Actualización de usuario
+   */
+  async update(id: string, dto: CreateUserDto) {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
     }
 
-    /**
-     * Actuslización de usuario
-     */
-
-    async update(id: string, dto: CreateUserDto) {
-      const user = await this.userModel.findById(id);
-      if (!user) {
-        throw new BadRequestException('Usuario no encontrado');
-      }
-
-      if(dto.password){
-        dto.password = await bcrypt.hash(dto.password,10);
-      }
-
-
-      const updatedUser = await this.userModel.findByIdAndUpdate(id, dto, {new: true});
-      return ResponseHelper.succes(updatedUser);
+    if(dto.password){
+      dto.password = await bcrypt.hash(dto.password,10);
     }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(id, dto, {new: true});
+    return ResponseHelper.succes(updatedUser);
+  }
     
-    /**
-     * Eliminación logica
-     */
+  /**
+   * Eliminación logica
+   */
+  async remove(id: string) {
+    const user = await this.userModel.findById(id);
 
-    async remove(id: string) {
-        const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
 
-        if (!user) {
-          throw new NotFoundException('Usuario no encontrado');
-        }
-
-        const deletedUser = await this.userModel.findByIdAndUpdate(id, { activo: false });
-        return ResponseHelper.succes(deletedUser);
-        }
-
-
+    const deletedUser = await this.userModel.findByIdAndUpdate(id, { activo: false }, { new: true });
+    return ResponseHelper.succes(deletedUser);
+  }
 }

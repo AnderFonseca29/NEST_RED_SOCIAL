@@ -11,6 +11,14 @@ export class Seguidor extends Document {
   @ApiProperty({ description: 'ID del usuario al que están siguiendo', example: '6679234bcf123a45678901ab' })
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   seguido!: Types.ObjectId; // 👈 Con "!" para evitar el error ts(2564)
-}
+
+
+    @Prop({
+      default: true,
+    })
+    activo!: boolean;
+  }
+
+
 
 export const SeguidorSchema = SchemaFactory.createForClass(Seguidor);

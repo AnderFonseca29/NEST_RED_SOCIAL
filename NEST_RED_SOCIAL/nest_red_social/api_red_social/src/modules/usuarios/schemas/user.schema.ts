@@ -25,7 +25,7 @@ export class User {
 
   @Prop({
     type: Types.ObjectId,
-    ref: 'Roles',
+    ref: 'Roles', // 💡 Asegúrate de que coincida con el nombre que le diste al esquema de roles
   })
   rol_id!: Types.ObjectId;
 
